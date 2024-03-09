@@ -2,6 +2,7 @@
 
 struct superbloque SB;
 
+// tamMB() devuelve el tamaño del mapa de bits.
 int tamMB(unsigned int nbloques){
     if((nbloques/8)%BLOCKSIZE != 0){
         return ceil((nbloques/8)/BLOCKSIZE);
@@ -10,6 +11,8 @@ int tamMB(unsigned int nbloques){
     }
 }
 
+
+// tamAI() devuelve el tamaño del array de inodos.
 int tamAI(unsigned int ninodos){
     if((ninodos*INODOSIZE)%BLOCKSIZE != 0){
         return ceil((ninodos*INODOSIZE)/BLOCKSIZE);
@@ -18,6 +21,7 @@ int tamAI(unsigned int ninodos){
     }
 }
 
+// initSB() inicializa el superbloque.
 int initSB(unsigned int nbloques, unsigned int ninodos){
     SB.posPrimerBloqueMB = posSB + tamSB;
     SB.posUltimoBloqueMB = SB.posPrimerBloqueMB + tamMB(nbloques) - 1;
@@ -34,8 +38,8 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
     bwrite(posSB, &SB);
 }
 
+// initMB() inicializa el mapa de bits.
 int initMB(){
-    bread(0,&SB);
     int tamDatos = tamSB + tamMB(SB.totBloques) + tamAI(SB.totInodos);
     char bufferMB[BLOCKSIZE];
 
@@ -43,7 +47,7 @@ int initMB(){
         bufferMB[i] = 255;
     }
 
-    bufferMB[tamDatos/8] = 224;
+    //bufferMB[tamDatos/8] = ;
 
     for(int i = tamDatos/8 + 1; i < BLOCKSIZE; i++){
         bufferMB[i] = 0;
@@ -52,6 +56,25 @@ int initMB(){
     bwrite(0,bufferMB);
 }
 
+
+// initAI() el bloque de inodos.
 int initAI(){
-    
-}
+    struct inodo inodos [BLOCKSIZE/INODOSIZE];
+    void *buf [BLOCKSIZE];
+
+    int contInodos = SB.posPrimerInodoLibre + 1;
+    for(int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++){
+        bread(i, inodos);
+        for(int j = 0; j < BLOCKSIZE/INODOSIZE; j++){
+            inodos[j].tipo = 'l';
+            if(contInodos < SB.totInodos){
+                inodos[j].punterosDirectos[0] = contInodos;
+                contInodos++;
+            }else{
+                inodos[j].punterosDirectos[0] = UINT_MAX;
+                break;
+            }
+        }
+        bwrite(i, inodos);
+    }
+}   
