@@ -78,4 +78,5 @@ int initAI(){
         }
         bwrite(i, inodos);
     }
+    return 0;
 }   
