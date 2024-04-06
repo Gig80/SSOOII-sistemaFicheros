@@ -18,7 +18,7 @@ int bmount(const char* camino){
 }
 
 int bumount(){
-     close(descriptor);
+     return close(descriptor);
 }
 
 int bwrite(unsigned int nbloque, const void *buf){
