@@ -35,7 +35,8 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
     SB.cantInodosLibres = ninodos;
     SB.totBloques = nbloques;
     SB.totInodos = ninodos;
-    bwrite(posSB, &SB);
+    
+    return bwrite(posSB, &SB);
 }
 
 // initMB() inicializa el mapa de bits.
