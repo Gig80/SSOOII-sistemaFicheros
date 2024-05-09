@@ -61,7 +61,7 @@ int initMB(){
 
     memset(bufferMB, 0, sizeof(bufferMB));
 
-    for(int i = 0; i < (tamDatos/8 - 1); i++){
+    for(int i = 0; i <= (tamDatos/8 - 1); i++){
         bufferMB[i] = 255;
     }
 
@@ -123,29 +123,25 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     unsigned char mascara = 128;
     mascara >>= posbit; // Desplazamiento de bits
 
-    if (bread(nbloqueabs, bufferMB) == -1)
-    { // Leemos bloque
+    if (bread(nbloqueabs, bufferMB) == -1){ // Leemos bloque
         fprintf(stderr, "Error while reading\n");
         return -1;
     }
 
-    if (bit == 1)
-    {
-        bufferMB[posbyte] = mascara;
+    if (bit == 1){
+        bufferMB[posbyte] |= mascara;
     }
-    else
-    {
+    else{
         bufferMB[posbyte] &= ~mascara;
     }
 
     // Escribimos el buffer en el dispositivo virtual
 
-    if (bwrite(nbloqueabs, bufferMB) == -1)
-    {
+    if (bwrite(nbloqueabs, bufferMB) == -1){
         fprintf(stderr, "Error while writing\n");
-        return -1;
+        return FALLO;
     }
-    return 0;
+    return EXITO;
 }
 
 char leer_bit(unsigned int nbloque){
@@ -199,7 +195,7 @@ int reservar_bloque(){
         int nBloqueMB;
         for(nBloqueMB = 0; nBloqueMB <= SB.posUltimoBloqueMB; nBloqueMB++){
             bread(SB.posPrimerBloqueMB + nBloqueMB, bufferMB);
-            if(memcmp(bufferMB, bufferAux, BLOCKSIZE) == 1){
+            if(memcmp(bufferMB, bufferAux, BLOCKSIZE) != 0){
                 break;
             }
         }
@@ -216,8 +212,7 @@ int reservar_bloque(){
             bufferMB[posbyte] <<= 1;
             posbit++;
         }
-        nbloque = (nBloqueMB*BLOCKSIZE*posbyte)*8+posbit;
-        printf("Numero de bloque: %i\nNbloqueMB: %i\nPosbyte: %i\nPosbit: %i\n", nbloque, nBloqueMB, posbyte, posbit);
+        nbloque = (nBloqueMB*BLOCKSIZE+posbyte)*8+posbit;
         escribir_bit(nbloque, 1);
         SB.cantBloquesLibres--;
         bwrite(posSB, &SB);
@@ -230,10 +225,11 @@ int reservar_bloque(){
 }
 
 int liberar_bloque(unsigned int nbloque){
-    bread(0, &SB);
+    bread(posSB, &SB);
     escribir_bit(nbloque, 0);
     SB.cantBloquesLibres++;
-    return bwrite(0, &SB);
+    bwrite(posSB, &SB);
+    return nbloque;
 }
 
 int escribir_inodo(unsigned int ninodo, struct inodo *inodo){
@@ -269,7 +265,7 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo){
     // Obtenemos el inodo solicitado:
     *inodo = inodos[posinodo];
 
-    return 0;
+    return EXITO;
 }
 
 

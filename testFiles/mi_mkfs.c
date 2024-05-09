@@ -20,7 +20,21 @@ int main(int argc, char **argv){
         int inodoReservado = reservar_inodo('d',7);
         printf("Inodo reservado: %i\n", inodoReservado);
 
-        reservar_bloque();
+        int bloqueReservado = reservar_bloque();
+        printf("Bloque reservado: %i\n", bloqueReservado);
+
+        int bloqueLiberado = liberar_bloque(bloqueReservado);
+        printf("Bloque liberado: %i\n", bloqueLiberado);
+
+        struct inodo inodoLeido;
+
+        leer_inodo(inodoReservado, &inodoLeido);
+
+        printf("tipo: %c\n", inodoLeido.tipo);
+        printf("permisos: %i\n", inodoLeido.permisos);
+        printf("nLinks: %i\n", inodoLeido.nlinks);
+        printf("tamEnBytesLog: %i\n", inodoLeido.tamEnBytesLog);
+        printf("numBloquesOcupados: %i\n", inodoLeido.numBloquesOcupados);
 
         bumount();
 }
